@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Business Audit Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a2744;
+      --gold: #f59e0b;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --error: #ef4444;
+      --success: #10b981;
+      --text: #374151;
+      --muted: #6b7280;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    /* ── Hero ─────────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 60%, #243560 100%);
+      color: #fff;
+      text-align: center;
+      padding: 60px 20px 80px;
+    }
+    .hero .badge {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 { font-size: clamp(26px, 5vw, 42px); font-weight: 800; line-height: 1.2; margin-bottom: 14px; }
+    .hero p  { font-size: 16px; color: #94a3b8; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+    /* ── Card ─────────────────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      max-width: 680px;
+      margin: -40px auto 60px;
+      padding: 40px 44px;
+    }
+    @media (max-width: 600px) { .card { padding: 28px 20px; margin: -30px 16px 40px; } }
+    /* ── Form ─────────────────────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; color: var(--navy); }
+    label .req { color: var(--gold); margin-left: 2px; }
+    input, select, textarea {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(26,39,68,.08);
+    }
+    input.error, select.error, textarea.error { border-color: var(--error); }
+    .field-error { font-size: 12px; color: var(--error); margin-top: 2px; display: none; }
+    textarea { resize: vertical; min-height: 90px; }
+    /* ── Button ───────────────────────────────────────────────────────── */
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px 24px;
+      background: var(--gold); color: var(--navy);
+      font-size: 15px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: 24px;
+    }
+    .btn:hover { background: #e08e00; }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+    /* ── Spinner ──────────────────────────────────────────────────────── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid rgba(26,39,68,.2);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── Success / Error states ───────────────────────────────────────── */
+    .success-box {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .success-icon {
+      width: 64px; height: 64px;
+      background: #d1fae5; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .success-box h2 { font-size: 22px; color: var(--navy); margin-bottom: 10px; }
+    .success-box p  { font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .error-banner {
+      display: none;
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px; padding: 12px 16px;
+      font-size: 13px; color: #b91c1c;
+      margin-bottom: 16px;
+    }
+    /* ── Trust bar ────────────────────────────────────────────────────── */
+    .trust { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; margin-top: 16px; }
+    .trust span { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 5px; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">Free · No Credit Card Required</div>
+  <h1>Get Your Free Business<br>Audit Report</h1>
+  <p>Fill in your details and receive a personalized, AI-powered audit of your digital presence, competitive landscape, and growth opportunities — delivered to your inbox in minutes.</p>
+</div>
+
+<div class="card">
+  <div class="error-banner" id="errorBanner"></div>
+
+  <!-- ── Form ─────────────────────────────────────────────────────────── -->
+  <form id="leadForm" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="full_name">Full Name <span class="req">*</span></label>
+        <input type="text" id="full_name" name="full_name" placeholder="Jane Smith" autocomplete="name" />
+        <span class="field-error" id="err_full_name">Please enter your full name (min 2 characters).</span>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Business Email <span class="req">*</span></label>
+        <input type="email" id="email" name="email" placeholder="jane@company.com" autocomplete="email" />
+        <span class="field-error" id="err_email">Please enter a valid email address.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="company_name">Company Name <span class="req">*</span></label>
+        <input type="text" id="company_name" name="company_name" placeholder="Acme Corp" />
+        <span class="field-error" id="err_company_name">Please enter your company name.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="company_website">Company Website</label>
+        <input type="url" id="company_website" name="company_website" placeholder="https://acme.com" />
+        <span class="field-error" id="err_company_website">Please enter a valid URL.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="industry">Industry</label>
+        <input type="text" id="industry" name="industry" placeholder="e.g. SaaS, E-commerce, Healthcare" />
+      </div>
+
+      <div class="form-group">
+        <label for="company_size">Company Size</label>
+        <select id="company_size" name="company_size">
+          <option value="">Select range…</option>
+          <option value="1-10">1–10 employees</option>
+          <option value="11-50">11–50 employees</option>
+          <option value="51-200">51–200 employees</option>
+          <option value="201-500">201–500 employees</option>
+          <option value="500+">500+ employees</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Your Role</label>
+        <input type="text" id="role" name="role" placeholder="e.g. CEO, Marketing Head" />
+      </div>
+
+      <div class="form-group full">
+        <label for="message">What are your biggest challenges or goals?</label>
+        <textarea id="message" name="message" placeholder="Tell us about your pain points, goals, or anything you'd like the report to focus on…"></textarea>
+      </div>
+
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">
+      <span id="btnText">Get My Free Audit Report</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+  </form>
+
+  <!-- ── Success state ─────────────────────────────────────────────────── -->
+  <div class="success-box" id="successBox">
+    <div class="success-icon">✅</div>
+    <h2 id="successHeading">Report on its way!</h2>
+    <p id="successMessage"></p>
+  </div>
+
+  <div class="trust">
+    <span>🔒 Your data is secure</span>
+    <span>⚡ Report ready in minutes</span>
+    <span>📧 Delivered to your inbox</span>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('leadForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+  const successBox = document.getElementById('successBox');
+  const errorBanner = document.getElementById('errorBanner');
+
+  function showError(fieldId, show) {
+    const input = document.getElementById(fieldId);
+    const err   = document.getElementById('err_' + fieldId);
+    if (!input) return;
+    if (show) {
+      input.classList.add('error');
+      if (err) err.style.display = 'block';
+    } else {
+      input.classList.remove('error');
+      if (err) err.style.display = 'none';
+    }
+  }
+
+  function validateEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  function validateUrl(v) {
+    if (!v) return true; // optional
+    try { new URL(v.startsWith('http') ? v : 'https://' + v); return true; }
+    catch { return false; }
+  }
+
+  function validate() {
+    let ok = true;
+    const name = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const company = document.getElementById('company_name').value.trim();
+    const website = document.getElementById('company_website').value.trim();
+
+    showError('full_name',    name.length < 2);
+    showError('email',        !validateEmail(email));
+    showError('company_name', company.length < 1);
+    showError('company_website', !validateUrl(website));
+
+    if (name.length < 2 || !validateEmail(email) || company.length < 1 || !validateUrl(website)) ok = false;
+    return ok;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBanner.style.display = 'none';
+    if (!validate()) return;
+
+    // Build payload
+    const payload = {};
+    ['full_name','email','company_name','company_website','industry','role','message'].forEach(id => {
+      const val = document.getElementById(id).value.trim();
+      if (val) payload[id] = val;
+    });
+    const size = document.getElementById('company_size').value;
+    if (size) payload.company_size = size;
+
+    // Loading state
+    submitBtn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Generating your report…';
+
+    try {
+      const res = await fetch('/api/v1/submit-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        form.style.display = 'none';
+        successBox.style.display = 'block';
+        document.getElementById('successHeading').textContent =
+          `Thank you, ${payload.full_name.split(' ')[0]}!`;
+        document.getElementById('successMessage').textContent =
+          `Your personalized audit report for ${payload.company_name} is being prepared and will arrive in your inbox within minutes.`;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        let msg = 'Something went wrong. Please try again.';
+        if (data.detail) {
+          if (Array.isArray(data.detail)) {
+            msg = data.detail.map(d => `${d.loc?.slice(-1)[0] ?? ''}: ${d.msg}`).join(' · ');
+          } else {
+            msg = String(data.detail);
+          }
+        }
+        errorBanner.textContent = msg;
+        errorBanner.style.display = 'block';
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = 'Get My Free Audit Report';
+      }
+    } catch (err) {
+      errorBanner.textContent = 'Network error — please check your connection and try again.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'Get My Free Audit Report';
+    }
+  });
+
+  // Clear field errors on input
+  ['full_name','email','company_name','company_website'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => showError(id, false));
+  });
+</script>
+</body>
+</html>

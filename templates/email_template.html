@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Business Audit Report</title>
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:40px 20px;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1a2744,#243560); border-radius:12px 12px 0 0; padding:36px 40px; text-align:center;">
+            <p style="color:#f59e0b; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin:0 0 12px;">Your Personalized Report is Ready</p>
+            <h1 style="color:#ffffff; font-size:26px; font-weight:800; margin:0 0 8px; line-height:1.2;">Business Audit Report</h1>
+            <p style="color:#94a3b8; font-size:14px; margin:0;">Prepared exclusively for {{ company_name }}</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff; padding:36px 40px;">
+            <p style="color:#1a2744; font-size:16px; font-weight:600; margin:0 0 16px;">Hi {{ first_name }},</p>
+            <p style="color:#374151; font-size:14px; line-height:1.7; margin:0 0 16px;">
+              Your personalized Business Audit Report for <strong>{{ company_name }}</strong> is ready.
+              Our analysis covers your digital presence, competitive landscape, and the most impactful
+              growth opportunities available to you right now.
+            </p>
+
+            {% if executive_summary_snippet %}
+            <div style="background:#f0f4ff; border-left:4px solid #f59e0b; border-radius:0 8px 8px 0; padding:16px 20px; margin:20px 0;">
+              <p style="color:#1a2744; font-size:13px; line-height:1.7; margin:0; font-style:italic;">
+                "{{ executive_summary_snippet }}"
+              </p>
+            </div>
+            {% endif %}
+
+            {% if teaser_opportunity %}
+            <p style="color:#374151; font-size:14px; line-height:1.7; margin:16px 0;">
+              One key finding: <strong>{{ teaser_opportunity.title }}</strong> —
+              {{ teaser_opportunity.description[:180] }}…
+            </p>
+            {% endif %}
+
+            {% if digital_score %}
+            <p style="color:#374151; font-size:14px; line-height:1.7; margin:0 0 24px;">
+              Your digital presence scored <strong style="color:#f59e0b;">{{ digital_score }}</strong> —
+              with clear, actionable steps to improve it inside the report.
+            </p>
+            {% endif %}
+
+            <!-- CTA Button -->
+            <table cellpadding="0" cellspacing="0" style="margin:28px 0;">
+              <tr>
+                <td style="border-radius:8px; background:#f59e0b;">
+                  {% if drive_url %}
+                  <a href="{{ drive_url }}" style="display:inline-block; padding:14px 32px; color:#1a2744; font-size:15px; font-weight:700; text-decoration:none; border-radius:8px;">
+                    View Your Full Report →
+                  </a>
+                  {% else %}
+                  <span style="display:inline-block; padding:14px 32px; color:#1a2744; font-size:15px; font-weight:700;">
+                    Report Attached Below ↓
+                  </span>
+                  {% endif %}
+                </td>
+              </tr>
+            </table>
+
+            <p style="color:#6b7280; font-size:13px; line-height:1.6; margin:0;">
+              {% if not drive_url %}Your full report is attached to this email as a PDF.{% endif %}
+              If you have any questions or would like to discuss the findings, simply reply to this email.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f8fafc; border-top:1px solid #e2e8f0; border-radius:0 0 12px 12px; padding:24px 40px;">
+            <p style="color:#1a2744; font-size:13px; font-weight:700; margin:0 0 4px;">{{ from_name }}</p>
+            <p style="color:#6b7280; font-size:12px; margin:0 0 12px;">{{ from_email }}</p>
+            <p style="color:#9ca3af; font-size:11px; margin:0; line-height:1.5;">
+              This report was generated automatically based on publicly available data and AI analysis.
+              It is intended for informational purposes only.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

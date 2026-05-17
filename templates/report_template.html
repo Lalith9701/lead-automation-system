@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business Audit Report — {{ lead.company_name }}</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a2744;
+      background: #ffffff;
+      line-height: 1.6;
+    }
+    /* ── Page setup ───────────────────────────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 20mm 18mm 22mm 18mm;
+      @bottom-center {
+        content: "Confidential — Prepared for {{ lead.company_name }}   |   Page " counter(page) " of " counter(pages) "   |   Generated {{ generated_at }}";
+        font-size: 8pt;
+        color: #6b7280;
+      }
+    }
+    @page cover { margin: 0; @bottom-center { content: ""; } }
+    /* ── Colours ──────────────────────────────────────────────────────── */
+    :root {
+      --navy:  #1a2744;
+      --gold:  #f59e0b;
+      --light: #f8fafc;
+      --muted: #6b7280;
+      --border:#e2e8f0;
+      --green: #10b981;
+      --red:   #ef4444;
+      --blue:  #3b82f6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     COVER PAGE
+════════════════════════════════════════════════════════════════════════ -->
+<div style="page: cover; width:100%; height:100vh; background:linear-gradient(160deg,#1a2744 60%,#243560 100%); display:flex; flex-direction:column; justify-content:space-between; padding:50px 60px; color:#fff;">
+
+  <!-- Top bar -->
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    {% if logo_url %}
+    <img src="{{ logo_url }}" alt="{{ lead.company_name }} logo"
+         style="height:48px; max-width:180px; object-fit:contain; background:#fff; border-radius:6px; padding:6px;"
+         onerror="this.style.display='none'" />
+    {% endif %}
+    <div style="text-align:right; font-size:9pt; color:#94a3b8;">
+      {{ generated_at }}
+    </div>
+  </div>
+
+  <!-- Centre content -->
+  <div style="text-align:center; padding:40px 0;">
+    <div style="display:inline-block; background:#f59e0b; color:#1a2744; font-size:9pt; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:6px 18px; border-radius:20px; margin-bottom:24px;">
+      Confidential Business Audit
+    </div>
+    <h1 style="font-size:36pt; font-weight:800; line-height:1.15; margin-bottom:16px; color:#ffffff;">
+      {{ lead.company_name }}
+    </h1>
+    <p style="font-size:14pt; color:#cbd5e1; margin-bottom:8px;">Digital Presence &amp; Growth Opportunity Report</p>
+    <p style="font-size:11pt; color:#94a3b8;">Prepared exclusively for {{ lead.company_name }}</p>
+  </div>
+
+  <!-- Bottom info -->
+  <div style="border-top:1px solid rgba(255,255,255,0.15); padding-top:24px; display:flex; justify-content:space-between; font-size:9pt; color:#94a3b8;">
+    <div>
+      <strong style="color:#fff;">Prepared for</strong><br>
+      {{ lead.full_name }}{% if lead.role %}, {{ lead.role }}{% endif %}<br>
+      {{ lead.email }}
+    </div>
+    <div style="text-align:right;">
+      <strong style="color:#fff;">Report Date</strong><br>
+      {{ generated_at }}<br>
+      {% if enrichment.data_confidence %}
+      Data Confidence: <span style="color:#f59e0b; text-transform:capitalize;">{{ enrichment.data_confidence }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+════════════════════════════════════════════════════════════════════════ -->
+<div style="padding:10px 0 30px;">
+  <h2 style="font-size:18pt; color:#1a2744; border-bottom:3px solid #f59e0b; padding-bottom:10px; margin-bottom:24px;">Table of Contents</h2>
+  <table style="width:100%; border-collapse:collapse;">
+    {% set toc = [
+      ('01', 'Executive Summary'),
+      ('02', 'Company Overview'),
+      ('03', 'Digital Presence Audit'),
+      ('04', 'Competitive Landscape'),
+      ('05', 'Growth Opportunities'),
+      ('06', 'Tech &amp; Operations'),
+      ('07', 'Action Plan'),
+    ] %}
+    {% for num, title in toc %}
+    <tr style="border-bottom:1px dotted #e2e8f0;">
+      <td style="padding:10px 0; width:40px; color:#f59e0b; font-weight:700; font-size:10pt;">{{ num }}</td>
+      <td style="padding:10px 0; font-size:11pt; color:#1a2744;">{{ title }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SECTION MACRO
+════════════════════════════════════════════════════════════════════════ -->
+{% macro section_header(num, title) %}
+<div style="display:flex; align-items:center; margin-bottom:20px; margin-top:10px;">
+  <div style="background:#1a2744; color:#f59e0b; font-size:10pt; font-weight:800; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-right:14px;">{{ num }}</div>
+  <h2 style="font-size:16pt; color:#1a2744; font-weight:700;">{{ title }}</h2>
+</div>
+{% endmacro %}
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     01 — EXECUTIVE SUMMARY
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('01', 'Executive Summary') }}
+<div style="background:#f0f4ff; border-left:4px solid #f59e0b; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:30px;">
+  <p style="font-size:11pt; line-height:1.8; color:#1a2744; white-space:pre-line;">{{ report.executive_summary }}</p>
+</div>
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     02 — COMPANY OVERVIEW
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('02', 'Company Overview') }}
+{% set co = report.company_overview %}
+<table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+  <tr>
+    <td style="width:50%; vertical-align:top; padding-right:16px;">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
+        <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">What They Do</h4>
+        <p style="font-size:10pt; color:#1a2744;">{{ co.what_they_do }}</p>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+        <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Market Position</h4>
+        <p style="font-size:10pt; color:#1a2744;">{{ co.market_position }}</p>
+      </div>
+    </td>
+    <td style="width:50%; vertical-align:top; padding-left:16px;">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
+        <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Key Strengths</h4>
+        <ul style="padding-left:16px; margin:0;">
+          {% for s in co.key_strengths %}
+          <li style="font-size:10pt; color:#1a2744; margin-bottom:4px;">{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+        <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Notable Achievements</h4>
+        <p style="font-size:10pt; color:#1a2744;">{{ co.notable_achievements }}</p>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- Enrichment quick facts -->
+{% if enrichment.hq_location or enrichment.founded_year or enrichment.employee_count or enrichment.industry %}
+<div style="background:#1a2744; border-radius:8px; padding:16px 20px; margin-bottom:30px;">
+  <div style="display:flex; gap:30px; flex-wrap:wrap;">
+    {% if enrichment.hq_location %}
+    <div style="color:#fff; font-size:9pt;"><span style="color:#f59e0b; font-weight:700;">📍 HQ</span><br>{{ enrichment.hq_location }}</div>
+    {% endif %}
+    {% if enrichment.founded_year %}
+    <div style="color:#fff; font-size:9pt;"><span style="color:#f59e0b; font-weight:700;">📅 Founded</span><br>{{ enrichment.founded_year }}</div>
+    {% endif %}
+    {% if enrichment.employee_count %}
+    <div style="color:#fff; font-size:9pt;"><span style="color:#f59e0b; font-weight:700;">👥 Size</span><br>{{ enrichment.employee_count }}</div>
+    {% endif %}
+    {% if enrichment.industry %}
+    <div style="color:#fff; font-size:9pt;"><span style="color:#f59e0b; font-weight:700;">🏭 Industry</span><br>{{ enrichment.industry }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     03 — DIGITAL PRESENCE AUDIT
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('03', 'Digital Presence Audit') }}
+{% set dpa = report.digital_presence_audit %}
+
+<!-- Score + radar chart -->
+<div style="display:flex; align-items:center; gap:30px; margin-bottom:24px;">
+  <div style="text-align:center; flex-shrink:0;">
+    <div style="width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#1a2744,#243560); display:flex; flex-direction:column; align-items:center; justify-content:center; border:4px solid #f59e0b;">
+      <span style="font-size:22pt; font-weight:800; color:#f59e0b;">{{ dpa.score.split('/')[0] if '/' in dpa.score else dpa.score }}</span>
+      <span style="font-size:8pt; color:#94a3b8;">/ 10</span>
+    </div>
+    <p style="font-size:8pt; color:#6b7280; margin-top:6px;">Digital Score</p>
+  </div>
+  <div style="flex:1;">
+    <!-- Inline SVG radar-style bar chart -->
+    <svg viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:300px;">
+      {% set bars = [
+        ('Website',  7),
+        ('SEO',      5),
+        ('Content',  6),
+        ('Social',   4),
+        ('Tech',     6),
+      ] %}
+      {% for label, val in bars %}
+      {% set y = loop.index0 * 16 %}
+      <text x="0" y="{{ y + 11 }}" font-size="8" fill="#6b7280">{{ label }}</text>
+      <rect x="60" y="{{ y }}" width="{{ val * 22 }}" height="12" rx="3" fill="#1a2744" opacity="0.15"/>
+      <rect x="60" y="{{ y }}" width="{{ val * 22 }}" height="12" rx="3" fill="#f59e0b" opacity="0.8"/>
+      <text x="{{ 60 + val * 22 + 4 }}" y="{{ y + 10 }}" font-size="8" fill="#1a2744">{{ val }}/10</text>
+      {% endfor %}
+    </svg>
+  </div>
+</div>
+
+<div style="margin-bottom:16px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:6px;">Website Analysis</h4>
+  <p style="font-size:10pt; color:#374151;">{{ dpa.website_analysis }}</p>
+</div>
+<div style="margin-bottom:16px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:6px;">SEO Observations</h4>
+  <p style="font-size:10pt; color:#374151;">{{ dpa.seo_observations }}</p>
+</div>
+<div style="margin-bottom:16px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:6px;">Content Strategy</h4>
+  <p style="font-size:10pt; color:#374151;">{{ dpa.content_strategy }}</p>
+</div>
+<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px; margin-bottom:30px;">
+  <h4 style="color:#065f46; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Recommendations</h4>
+  <ul style="padding-left:18px; margin:0;">
+    {% for rec in dpa.recommendations %}
+    <li style="font-size:10pt; color:#065f46; margin-bottom:5px;">{{ rec }}</li>
+    {% endfor %}
+  </ul>
+</div>
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     04 — COMPETITIVE LANDSCAPE
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('04', 'Competitive Landscape') }}
+{% set cl = report.competitive_landscape %}
+<p style="font-size:10pt; color:#374151; margin-bottom:16px;">{{ cl.market_overview }}</p>
+
+{% if cl.key_competitors %}
+<div style="margin-bottom:16px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:8px;">Key Competitors</h4>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for comp in cl.key_competitors %}
+    <span style="background:#e0e7ff; color:#3730a3; font-size:9pt; padding:4px 12px; border-radius:20px; font-weight:600;">{{ comp }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div style="display:flex; gap:16px; margin-bottom:30px;">
+  <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+    <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Differentiators</h4>
+    <p style="font-size:10pt; color:#374151;">{{ cl.differentiators }}</p>
+  </div>
+  <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+    <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Threats &amp; Opportunities</h4>
+    <p style="font-size:10pt; color:#374151;">{{ cl.threats_and_opportunities }}</p>
+  </div>
+</div>
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     05 — GROWTH OPPORTUNITIES
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('05', 'Growth Opportunities') }}
+{% for opp in report.growth_opportunities %}
+<div style="border:1px solid #e2e8f0; border-radius:10px; padding:18px 20px; margin-bottom:16px; background:#fff; border-left:4px solid #f59e0b;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+    <h3 style="font-size:12pt; color:#1a2744; font-weight:700;">{{ loop.index }}. {{ opp.title }}</h3>
+    <div style="display:flex; gap:8px; flex-shrink:0; margin-left:12px;">
+      {% set impact_color = '#10b981' if opp.impact == 'High' else ('#f59e0b' if opp.impact == 'Medium' else '#6b7280') %}
+      {% set effort_color = '#ef4444' if opp.effort == 'High' else ('#f59e0b' if opp.effort == 'Medium' else '#10b981') %}
+      <span style="background:{{ impact_color }}20; color:{{ impact_color }}; font-size:8pt; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid {{ impact_color }}40;">
+        Impact: {{ opp.impact }}
+      </span>
+      <span style="background:{{ effort_color }}20; color:{{ effort_color }}; font-size:8pt; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid {{ effort_color }}40;">
+        Effort: {{ opp.effort }}
+      </span>
+    </div>
+  </div>
+  <p style="font-size:10pt; color:#374151; margin-bottom:10px;">{{ opp.description }}</p>
+  <div style="background:#f0f4ff; border-radius:6px; padding:10px 14px;">
+    <span style="font-size:9pt; font-weight:700; color:#1a2744;">→ Recommended Action: </span>
+    <span style="font-size:9pt; color:#374151;">{{ opp.recommended_action }}</span>
+  </div>
+</div>
+{% endfor %}
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     06 — TECH & OPERATIONS
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('06', 'Tech &amp; Operations') }}
+{% set to = report.tech_and_operations %}
+<div style="display:flex; gap:16px; margin-bottom:20px;">
+  <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+    <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Current Stack Observations</h4>
+    <p style="font-size:10pt; color:#374151;">{{ to.current_stack_observations }}</p>
+  </div>
+  <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+    <h4 style="color:#f59e0b; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Automation Gaps</h4>
+    <p style="font-size:10pt; color:#374151;">{{ to.automation_gaps }}</p>
+  </div>
+</div>
+
+{% if enrichment.tech_stack %}
+<div style="margin-bottom:16px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:8px;">Detected Tech Stack</h4>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for tech in enrichment.tech_stack %}
+    <span style="background:#1a2744; color:#f59e0b; font-size:9pt; padding:4px 12px; border-radius:20px; font-weight:600;">{{ tech }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if to.recommended_tools %}
+<div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:16px; margin-bottom:30px;">
+  <h4 style="color:#92400e; font-size:9pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Recommended Tools</h4>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for tool in to.recommended_tools %}
+    <span style="background:#fef3c7; color:#92400e; font-size:9pt; padding:4px 12px; border-radius:6px; border:1px solid #fde68a;">{{ tool }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+<div style="page-break-after:always;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     07 — ACTION PLAN
+════════════════════════════════════════════════════════════════════════ -->
+{{ section_header('07', 'Action Plan') }}
+{% set ap = report.action_plan %}
+<div style="display:flex; gap:12px; margin-bottom:30px;">
+
+  <!-- Immediate -->
+  <div style="flex:1; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">
+    <div style="background:#ef4444; color:#fff; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:4px 10px; border-radius:12px; display:inline-block; margin-bottom:12px;">Immediate</div>
+    <ul style="padding-left:16px; margin:0;">
+      {% for action in ap.immediate_actions %}
+      <li style="font-size:9.5pt; color:#7f1d1d; margin-bottom:6px;">{{ action }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- 30-60 days -->
+  <div style="flex:1; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px;">
+    <div style="background:#f59e0b; color:#fff; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:4px 10px; border-radius:12px; display:inline-block; margin-bottom:12px;">30–60 Days</div>
+    <ul style="padding-left:16px; margin:0;">
+      {% for action in ap.short_term_30_60_days %}
+      <li style="font-size:9.5pt; color:#78350f; margin-bottom:6px;">{{ action }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- 90+ days -->
+  <div style="flex:1; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:16px;">
+    <div style="background:#10b981; color:#fff; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:4px 10px; border-radius:12px; display:inline-block; margin-bottom:12px;">90+ Days</div>
+    <ul style="padding-left:16px; margin:0;">
+      {% for action in ap.long_term_90_plus_days %}
+      <li style="font-size:9.5pt; color:#064e3b; margin-bottom:6px;">{{ action }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<!-- Closing note -->
+<div style="background:linear-gradient(135deg,#1a2744,#243560); border-radius:10px; padding:24px 28px; color:#fff; margin-bottom:20px;">
+  <h4 style="color:#f59e0b; font-size:10pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">A Note for {{ lead.full_name }}</h4>
+  <p style="font-size:11pt; line-height:1.8; color:#e2e8f0;">{{ report.closing_note }}</p>
+</div>
+
+<!-- Recent news (if available) -->
+{% if enrichment.recent_news %}
+<div style="margin-top:20px;">
+  <h4 style="color:#1a2744; font-size:10pt; font-weight:700; margin-bottom:10px;">Recent News Mentions</h4>
+  {% for news in enrichment.recent_news[:3] %}
+  <div style="border-bottom:1px solid #e2e8f0; padding:8px 0;">
+    <p style="font-size:9.5pt; color:#1a2744; font-weight:600;">{{ news.title }}</p>
+    <p style="font-size:8.5pt; color:#6b7280;">{{ news.get('source', '') }}{% if news.get('published') %} · {{ news.published[:10] }}{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic[email]
+httpx
+beautifulsoup4
+anthropic
+weasyprint
+jinja2
+sendgrid
+gspread
+google-auth
+google-api-python-client
+python-dotenv
+python-multipart
+lxml
+aiofiles

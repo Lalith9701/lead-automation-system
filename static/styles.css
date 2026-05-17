@@ -1,0 +1,30 @@
+/*
+ * static/styles.css
+ * Additional WeasyPrint-specific overrides loaded alongside report_template.html.
+ * Most styling is inline in the template for WeasyPrint compatibility.
+ */
+
+/* Ensure page breaks don't split cards */
+.opportunity-card,
+.action-column,
+.overview-card {
+  page-break-inside: avoid;
+}
+
+/* WeasyPrint: force background colours to print */
+* {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Hyphenation for long words in narrow columns */
+p, li {
+  hyphens: auto;
+  word-break: break-word;
+}
+
+/* Table layout stability */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
