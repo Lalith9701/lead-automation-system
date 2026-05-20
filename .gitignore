@@ -13,8 +13,10 @@ env/
 dist/
 build/
 
-# Generated output
-output/
+# Generated output — exclude reports but keep project documentation
+output/reports/
+# Allow the project documentation PDF
+!output/Lead_Automation_System_Documentation.pdf
 
 # IDE
 .vscode/
