@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Business Audit Report — {{ lead.company_name }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 22mm 20mm 26mm 20mm;
+    }
+    @page cover { margin: 0; }
+    @page content {
+      margin: 22mm 20mm 26mm 20mm;
+      @bottom-left {
+        content: "Confidential  ·  Prepared for {{ lead.company_name }}";
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 7.5pt; color: #9ca3af;
+      }
+      @bottom-right {
+        content: "Page " counter(page) "  ·  {{ generated_at }}";
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 7.5pt; color: #9ca3af;
+      }
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 10.5pt; color: #1e293b;
+      background: #ffffff; line-height: 1.65;
+    }
+    h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; }
+    p  { margin-bottom: 10px; }
+    ul { padding-left: 18px; }
+    li { margin-bottom: 5px; }
+
+    .page-break   { page-break-after: always; }
+    .avoid-break  { page-break-inside: avoid; }
+
+    .label {
+      display: inline-block; font-size: 7.5pt; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px; padding-bottom: 14px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .section-num {
+      flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+      background: #1a2744; color: #f59e0b; font-size: 11pt; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .section-title { font-size: 17pt; color: #1a2744; font-weight: 700; }
+
+    .card {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 16px 18px;
+    }
+    .card-label {
+      font-size: 8pt; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: #f59e0b; margin-bottom: 8px;
+    }
+    .card p, .card li { font-size: 10pt; color: #334155; }
+
+    .callout {
+      background: #eff6ff; border-left: 4px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 18px 22px; margin-bottom: 24px;
+    }
+    .callout p { font-size: 10.5pt; color: #1e293b; line-height: 1.8; margin: 0; }
+
+    .fact-strip {
+      background: #1a2744; border-radius: 10px;
+      padding: 16px 22px; display: flex; gap: 32px;
+      flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .fact-item { color: #fff; font-size: 9pt; }
+    .fact-item .fact-key { color: #f59e0b; font-weight: 700; display: block; margin-bottom: 2px; }
+
+    .score-circle {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, #1a2744, #243560);
+      border: 4px solid #f59e0b;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; flex-shrink: 0;
+    }
+    .score-num   { font-size: 22pt; font-weight: 800; color: #f59e0b; line-height: 1; }
+    .score-denom { font-size: 8pt; color: #94a3b8; }
+    .score-label { font-size: 8pt; color: #6b7280; margin-top: 6px; text-align: center; }
+
+    .opp-card {
+      border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b;
+      border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; background: #fff;
+    }
+    .opp-card-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 10px;
+    }
+    .opp-title  { font-size: 11.5pt; color: #1a2744; font-weight: 700; }
+    .opp-tags   { display: flex; gap: 6px; flex-shrink: 0; margin-left: 10px; }
+    .opp-body   { font-size: 10pt; color: #475569; margin-bottom: 10px; }
+    .opp-action {
+      background: #eff6ff; border-radius: 6px;
+      padding: 9px 13px; font-size: 9.5pt; color: #1e293b;
+    }
+    .opp-action strong { color: #1a2744; }
+
+    .action-col { flex: 1; border-radius: 10px; padding: 16px; }
+    .action-col .phase-badge {
+      display: inline-block; font-size: 8pt; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; color: #fff;
+    }
+    .action-col li { font-size: 9.5pt; margin-bottom: 7px; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .tag { font-size: 9pt; font-weight: 600; padding: 4px 13px; border-radius: 20px; }
+    .tech-tag {
+      background: #1a2744; color: #f59e0b; font-size: 9pt;
+      font-weight: 600; padding: 4px 13px; border-radius: 20px;
+    }
+    .tool-tag {
+      background: #fef3c7; color: #92400e; font-size: 9pt;
+      padding: 4px 13px; border-radius: 6px; border: 1px solid #fde68a;
+    }
+
+    .news-item  { padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+    .news-title { font-size: 9.5pt; color: #1a2744; font-weight: 600; }
+    .news-meta  { font-size: 8.5pt; color: #6b7280; margin-top: 2px; }
+
+    .closing-box {
+      background: linear-gradient(135deg, #1a2744, #243560);
+      border-radius: 12px; padding: 26px 30px; color: #fff; margin-bottom: 24px;
+    }
+    .closing-box .closing-label {
+      color: #f59e0b; font-size: 9pt; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .closing-box p { font-size: 10.5pt; line-height: 1.8; color: #e2e8f0; margin: 0; }
+
+    .disclaimer {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 8px; padding: 16px 20px;
+      font-size: 8.5pt; color: #6b7280; line-height: 1.7;
+    }
+
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════════════════════ -->
+<div style="page:cover; width:100%; min-height:100vh;
+            background:linear-gradient(160deg,#0f1c38 0%,#1a2744 55%,#243560 100%);
+            display:flex; flex-direction:column; justify-content:space-between;
+            padding:52px 60px; color:#fff;">
+
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    {% if logo_url %}
+    <img src="{{ logo_url }}" alt="{{ lead.company_name }}"
+         style="height:46px; max-width:170px; object-fit:contain;
+                background:#fff; border-radius:6px; padding:6px 10px;" />
+    {% endif %}
+    <div style="text-align:right; font-size:8.5pt; color:#94a3b8; line-height:1.6;">
+      <div style="color:#f59e0b; font-weight:700; letter-spacing:1px;
+                  text-transform:uppercase; font-size:8pt; margin-bottom:4px;">
+        Business Audit Report
+      </div>
+      {{ generated_at }}
+    </div>
+  </div>
+
+  <div style="text-align:center; padding:50px 0 40px;">
+    <div style="display:inline-block; background:#f59e0b; color:#1a2744;
+                font-size:8.5pt; font-weight:800; letter-spacing:2px;
+                text-transform:uppercase; padding:6px 20px; border-radius:20px;
+                margin-bottom:28px;">
+      Confidential  ·  Prepared Exclusively
+    </div>
+    <h1 style="font-size:38pt; font-weight:800; line-height:1.1;
+               color:#ffffff; margin-bottom:14px; letter-spacing:-0.5px;">
+      {{ lead.company_name }}
+    </h1>
+    <p style="font-size:14pt; color:#cbd5e1; margin-bottom:6px; font-weight:300;">
+      Digital Presence &amp; Growth Opportunity Report
+    </p>
+    <p style="font-size:10pt; color:#64748b;">
+      A comprehensive analysis of your business, market position, and growth potential
+    </p>
+    <div style="width:60px; height:3px; background:#f59e0b; border-radius:2px;
+                margin:28px auto 0;"></div>
+  </div>
+
+  <div style="border-top:1px solid rgba(255,255,255,0.12); padding-top:24px;
+              display:flex; justify-content:space-between; align-items:flex-end;">
+    <div style="font-size:9pt; color:#94a3b8; line-height:1.8;">
+      <div style="color:#fff; font-weight:700; font-size:9.5pt; margin-bottom:4px;">Prepared for</div>
+      {{ lead.full_name }}{% if lead.role %} · {{ lead.role }}{% endif %}<br>
+      {{ lead.email }}
+    </div>
+    <div style="text-align:right; font-size:9pt; color:#94a3b8; line-height:1.8;">
+      <div style="color:#fff; font-weight:700; font-size:9.5pt; margin-bottom:4px;">Report Details</div>
+      Date: {{ generated_at }}<br>
+      {% if enrichment.data_confidence %}
+      Data Confidence:
+      <span style="color:#f59e0b; font-weight:700; text-transform:capitalize;">
+        {{ enrichment.data_confidence }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  <div style="display:flex; justify-content:space-between; align-items:center;
+              padding-bottom:16px; border-bottom:2px solid #1a2744; margin-bottom:32px;">
+    <div>
+      <div style="font-size:8pt; color:#f59e0b; font-weight:700; letter-spacing:1.5px;
+                  text-transform:uppercase; margin-bottom:4px;">Business Audit Report</div>
+      <div style="font-size:18pt; font-weight:800; color:#1a2744;">Table of Contents</div>
+    </div>
+    <div style="font-size:9pt; color:#94a3b8; text-align:right;">
+      {{ lead.company_name }}<br>{{ generated_at }}
+    </div>
+  </div>
+
+  {% set toc_items = [
+    ('01', 'Executive Summary',      'A high-level overview of your company and key findings'),
+    ('02', 'Company Overview',       'What you do, your market position, and key strengths'),
+    ('03', 'Digital Presence Audit', 'Website, SEO, content strategy, and digital score'),
+    ('04', 'Competitive Landscape',  'Market overview, competitors, and your differentiators'),
+    ('05', 'Growth Opportunities',   'Prioritised opportunities with impact and effort ratings'),
+    ('06', 'Tech & Operations',      'Current stack, automation gaps, and tool recommendations'),
+    ('07', 'Action Plan',            'Immediate, 30-60 day, and 90+ day steps to move forward'),
+  ] %}
+  {% for num, title, desc in toc_items %}
+  <div class="avoid-break"
+       style="display:flex; align-items:center; gap:16px; padding:14px 0;
+              border-bottom:1px solid #f1f5f9;">
+    <div style="width:36px; height:36px; border-radius:50%; background:#1a2744;
+                color:#f59e0b; font-size:10pt; font-weight:800;
+                display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+      {{ num }}
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:11.5pt; font-weight:700; color:#1a2744;">{{ title }}</div>
+      <div style="font-size:9pt; color:#64748b; margin-top:2px;">{{ desc }}</div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div style="margin-top:36px; background:#f8fafc; border:1px solid #e2e8f0;
+              border-radius:10px; padding:20px 22px;">
+    <div style="font-size:9pt; font-weight:700; color:#1a2744; margin-bottom:8px;
+                text-transform:uppercase; letter-spacing:1px;">About This Report</div>
+    <p style="font-size:9.5pt; color:#475569; line-height:1.7; margin:0;">
+      This report was generated automatically using publicly available data, AI-powered analysis,
+      and information provided at submission. All insights are directional and should be validated
+      with your internal data before making strategic decisions. Data confidence:
+      <strong style="color:#1a2744; text-transform:capitalize;">
+        {{ enrichment.data_confidence | default('medium') }}
+      </strong>.
+    </p>
+  </div>
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION MACRO
+══════════════════════════════════════════════════════ -->
+{% macro sec(num, title) %}
+<div class="section-header">
+  <div class="section-num">{{ num }}</div>
+  <div class="section-title">{{ title }}</div>
+</div>
+{% endmacro %}
+
+<!-- ══════════════════════════════════════════════════════
+     01 — EXECUTIVE SUMMARY
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('01', 'Executive Summary') }}
+  <div class="callout avoid-break">
+    <p style="white-space:pre-line;">{{ report.executive_summary }}</p>
+  </div>
+  {% if enrichment.hq_location or enrichment.founded_year or enrichment.employee_count or enrichment.industry %}
+  <div class="fact-strip avoid-break">
+    {% if enrichment.industry %}
+    <div class="fact-item"><span class="fact-key">Industry</span>{{ enrichment.industry }}</div>
+    {% endif %}
+    {% if enrichment.hq_location %}
+    <div class="fact-item"><span class="fact-key">Headquarters</span>{{ enrichment.hq_location }}</div>
+    {% endif %}
+    {% if enrichment.founded_year %}
+    <div class="fact-item"><span class="fact-key">Founded</span>{{ enrichment.founded_year }}</div>
+    {% endif %}
+    {% if enrichment.employee_count %}
+    <div class="fact-item"><span class="fact-key">Company Size</span>{{ enrichment.employee_count }}</div>
+    {% endif %}
+    {% if enrichment.domain %}
+    <div class="fact-item"><span class="fact-key">Website</span>{{ enrichment.domain }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     02 — COMPANY OVERVIEW
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('02', 'Company Overview') }}
+  {% set co = report.company_overview %}
+  <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+    <tr>
+      <td style="width:50%; vertical-align:top; padding-right:10px;">
+        <div class="card avoid-break" style="margin-bottom:12px;">
+          <div class="card-label">What They Do</div>
+          <p>{{ co.what_they_do }}</p>
+        </div>
+        <div class="card avoid-break">
+          <div class="card-label">Market Position</div>
+          <p>{{ co.market_position }}</p>
+        </div>
+      </td>
+      <td style="width:50%; vertical-align:top; padding-left:10px;">
+        <div class="card avoid-break" style="margin-bottom:12px;">
+          <div class="card-label">Key Strengths</div>
+          <ul>{% for s in co.key_strengths %}<li>{{ s }}</li>{% endfor %}</ul>
+        </div>
+        <div class="card avoid-break">
+          <div class="card-label">Notable Achievements</div>
+          <p>{{ co.notable_achievements }}</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+  {% if enrichment.social_media %}
+  <div class="avoid-break" style="margin-bottom:16px;">
+    <div style="font-size:9pt; font-weight:700; color:#1a2744; text-transform:uppercase;
+                letter-spacing:1px; margin-bottom:8px;">Online Presence</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      {% for platform, url in enrichment.social_media.items() %}
+      <span style="background:#e0e7ff; color:#3730a3; font-size:9pt; font-weight:600;
+                   padding:4px 13px; border-radius:20px; text-transform:capitalize;">
+        {{ platform }}: {{ url }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% if enrichment.key_products_services %}
+  <div class="card avoid-break">
+    <div class="card-label">Key Products &amp; Services</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+      {% for item in enrichment.key_products_services %}
+      <span style="background:#f0f4ff; color:#1a2744; font-size:9pt;
+                   padding:4px 12px; border-radius:6px; border:1px solid #c7d2fe;">
+        {{ item }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     03 — DIGITAL PRESENCE AUDIT
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('03', 'Digital Presence Audit') }}
+  {% set dpa = report.digital_presence_audit %}
+
+  <div style="display:flex; align-items:center; gap:28px; margin-bottom:26px;" class="avoid-break">
+    <div style="text-align:center; flex-shrink:0;">
+      <div class="score-circle">
+        <span class="score-num">{{ dpa.score.split('/')[0] if '/' in dpa.score else dpa.score }}</span>
+        <span class="score-denom">/ 10</span>
+      </div>
+      <div class="score-label">Overall<br>Digital Score</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:8.5pt; color:#64748b; margin-bottom:8px; font-weight:600;
+                  text-transform:uppercase; letter-spacing:1px;">Score Breakdown</div>
+      <svg viewBox="0 0 320 90" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%; max-width:320px; display:block;">
+        {% set bars = [('Website',7),('SEO',5),('Content',6),('Social',4),('Tech',6)] %}
+        {% for label, val in bars %}
+        {% set y = loop.index0 * 18 %}
+        <text x="0" y="{{ y+12 }}" font-size="9" fill="#64748b"
+              font-family="Helvetica Neue,Arial,sans-serif">{{ label }}</text>
+        <rect x="68" y="{{ y+1 }}" width="220" height="12" rx="4" fill="#f1f5f9"/>
+        <rect x="68" y="{{ y+1 }}" width="{{ (val/10)*220 }}" height="12" rx="4"
+              fill="#f59e0b" opacity="0.85"/>
+        <text x="{{ 68+(val/10)*220+5 }}" y="{{ y+12 }}" font-size="9" fill="#1a2744"
+              font-weight="bold" font-family="Helvetica Neue,Arial,sans-serif">{{ val }}/10</text>
+        {% endfor %}
+      </svg>
+    </div>
+  </div>
+
+  <hr class="divider" />
+  <div style="margin-bottom:14px;" class="avoid-break">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:5px;">Website Analysis</div>
+    <p style="color:#475569;">{{ dpa.website_analysis }}</p>
+  </div>
+  <div style="margin-bottom:14px;" class="avoid-break">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:5px;">SEO Observations</div>
+    <p style="color:#475569;">{{ dpa.seo_observations }}</p>
+  </div>
+  <div style="margin-bottom:20px;" class="avoid-break">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:5px;">Content Strategy</div>
+    <p style="color:#475569;">{{ dpa.content_strategy }}</p>
+  </div>
+  <div class="avoid-break"
+       style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:16px 20px;">
+    <div style="font-size:9pt; font-weight:700; color:#065f46; text-transform:uppercase;
+                letter-spacing:1px; margin-bottom:10px;">Recommendations</div>
+    <ul style="padding-left:18px; margin:0;">
+      {% for rec in dpa.recommendations %}
+      <li style="font-size:10pt; color:#065f46; margin-bottom:6px;">{{ rec }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     04 — COMPETITIVE LANDSCAPE
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('04', 'Competitive Landscape') }}
+  {% set cl = report.competitive_landscape %}
+  <div class="callout avoid-break"><p>{{ cl.market_overview }}</p></div>
+  {% if cl.key_competitors %}
+  <div class="avoid-break" style="margin-bottom:20px;">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:10px;">Key Competitors</div>
+    <div class="tag-list">
+      {% for comp in cl.key_competitors %}
+      <span class="tag" style="background:#e0e7ff; color:#3730a3;">{{ comp }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <hr class="divider" />
+  <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <tr>
+      <td style="width:50%; vertical-align:top; padding-right:10px;">
+        <div class="card avoid-break">
+          <div class="card-label">What Makes You Different</div>
+          <p>{{ cl.differentiators }}</p>
+        </div>
+      </td>
+      <td style="width:50%; vertical-align:top; padding-left:10px;">
+        <div class="card avoid-break">
+          <div class="card-label">Threats &amp; Opportunities</div>
+          <p>{{ cl.threats_and_opportunities }}</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     05 — GROWTH OPPORTUNITIES
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('05', 'Growth Opportunities') }}
+  <p style="color:#475569; margin-bottom:20px; font-size:10pt;">
+    The following opportunities have been identified based on your company profile, market position,
+    and enriched data. Each is rated by potential <strong>Impact</strong> and implementation
+    <strong>Effort</strong> to help you prioritise.
+  </p>
+  {% for opp in report.growth_opportunities %}
+  {% set impact_color = '#10b981' if opp.impact == 'High' else ('#f59e0b' if opp.impact == 'Medium' else '#6b7280') %}
+  {% set effort_color = '#ef4444' if opp.effort == 'High' else ('#f59e0b' if opp.effort == 'Medium' else '#10b981') %}
+  <div class="opp-card avoid-break">
+    <div class="opp-card-header">
+      <div class="opp-title">{{ loop.index }}. {{ opp.title }}</div>
+      <div class="opp-tags">
+        <span class="label"
+              style="background:{{ impact_color }}18; color:{{ impact_color }};
+                     border:1px solid {{ impact_color }}40;">
+          Impact: {{ opp.impact }}
+        </span>
+        <span class="label"
+              style="background:{{ effort_color }}18; color:{{ effort_color }};
+                     border:1px solid {{ effort_color }}40;">
+          Effort: {{ opp.effort }}
+        </span>
+      </div>
+    </div>
+    <p class="opp-body">{{ opp.description }}</p>
+    <div class="opp-action">
+      <strong>Recommended Action:</strong> {{ opp.recommended_action }}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     06 — TECH & OPERATIONS
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('06', 'Tech &amp; Operations') }}
+  {% set to = report.tech_and_operations %}
+  <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <tr>
+      <td style="width:50%; vertical-align:top; padding-right:10px;">
+        <div class="card avoid-break">
+          <div class="card-label">Current Stack Observations</div>
+          <p>{{ to.current_stack_observations }}</p>
+        </div>
+      </td>
+      <td style="width:50%; vertical-align:top; padding-left:10px;">
+        <div class="card avoid-break">
+          <div class="card-label">Automation Gaps</div>
+          <p>{{ to.automation_gaps }}</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+  {% if enrichment.tech_stack %}
+  <div class="avoid-break" style="margin-bottom:20px;">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:10px;">Detected Tech Stack</div>
+    <div class="tag-list">
+      {% for tech in enrichment.tech_stack %}<span class="tech-tag">{{ tech }}</span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% if to.recommended_tools %}
+  <div class="avoid-break"
+       style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 20px;">
+    <div style="font-size:9pt; font-weight:700; color:#92400e; text-transform:uppercase;
+                letter-spacing:1px; margin-bottom:10px;">Recommended Tools</div>
+    <div class="tag-list" style="margin-bottom:0;">
+      {% for tool in to.recommended_tools %}<span class="tool-tag">{{ tool }}</span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     07 — ACTION PLAN
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  {{ sec('07', 'Action Plan') }}
+  <p style="color:#475569; margin-bottom:20px; font-size:10pt;">
+    A clear, phased roadmap to help {{ lead.company_name }} move from insight to execution.
+  </p>
+  {% set ap = report.action_plan %}
+  <table style="width:100%; border-collapse:collapse; margin-bottom:28px;">
+    <tr>
+      <td style="width:33%; vertical-align:top; padding-right:8px;">
+        <div class="action-col avoid-break"
+             style="background:#fef2f2; border:1px solid #fecaca;">
+          <span class="phase-badge" style="background:#ef4444;">Immediate</span>
+          <ul style="padding-left:16px; margin:0;">
+            {% for a in ap.immediate_actions %}
+            <li style="font-size:9.5pt; color:#7f1d1d; margin-bottom:7px;">{{ a }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </td>
+      <td style="width:33%; vertical-align:top; padding:0 4px;">
+        <div class="action-col avoid-break"
+             style="background:#fffbeb; border:1px solid #fde68a;">
+          <span class="phase-badge" style="background:#f59e0b;">30 - 60 Days</span>
+          <ul style="padding-left:16px; margin:0;">
+            {% for a in ap.short_term_30_60_days %}
+            <li style="font-size:9.5pt; color:#78350f; margin-bottom:7px;">{{ a }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </td>
+      <td style="width:33%; vertical-align:top; padding-left:8px;">
+        <div class="action-col avoid-break"
+             style="background:#f0fdf4; border:1px solid #bbf7d0;">
+          <span class="phase-badge" style="background:#10b981;">90+ Days</span>
+          <ul style="padding-left:16px; margin:0;">
+            {% for a in ap.long_term_90_plus_days %}
+            <li style="font-size:9.5pt; color:#064e3b; margin-bottom:7px;">{{ a }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="closing-box avoid-break">
+    <div class="closing-label">A Personal Note for {{ lead.full_name }}</div>
+    <p>{{ report.closing_note }}</p>
+  </div>
+
+  {% if enrichment.recent_news %}
+  <div class="avoid-break" style="margin-top:24px;">
+    <div style="font-size:10pt; font-weight:700; color:#1a2744; margin-bottom:12px;
+                padding-bottom:8px; border-bottom:1px solid #e2e8f0;">
+      Recent News &amp; Press Mentions
+    </div>
+    {% for news in enrichment.recent_news[:4] %}
+    <div class="news-item">
+      <div class="news-title">{{ news.title }}</div>
+      <div class="news-meta">
+        {% if news.get('source') %}{{ news.source }}{% endif %}
+        {% if news.get('published') %} · {{ news.published[:10] }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+<div class="page-break"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     DISCLAIMER PAGE
+══════════════════════════════════════════════════════ -->
+<div style="page:content;">
+  <div style="padding-bottom:14px; border-bottom:2px solid #e2e8f0; margin-bottom:28px;">
+    <div style="font-size:8.5pt; color:#f59e0b; font-weight:700; letter-spacing:1.5px;
+                text-transform:uppercase; margin-bottom:4px;">End of Report</div>
+    <div style="font-size:17pt; font-weight:800; color:#1a2744;">Disclaimer &amp; Notes</div>
+  </div>
+
+  <div class="disclaimer avoid-break" style="margin-bottom:24px;">
+    <p style="font-weight:700; color:#1a2744; margin-bottom:8px; font-size:9.5pt;">Important Notice</p>
+    <p style="margin-bottom:8px;">
+      This report was generated automatically using publicly available data, third-party sources
+      (Clearbit, DuckDuckGo, NewsAPI, web scraping), and AI-powered analysis via Anthropic Claude.
+      The information is provided for informational and strategic planning purposes only.
+    </p>
+    <p style="margin-bottom:8px;">
+      While every effort has been made to ensure accuracy, data may be incomplete, outdated, or
+      subject to change. All insights, scores, and recommendations are directional and should be
+      validated against your own internal data before making strategic or financial decisions.
+    </p>
+    <p style="margin-bottom:0;">
+      This report is <strong>confidential</strong> and prepared exclusively for
+      <strong>{{ lead.company_name }}</strong>.
+    </p>
+  </div>
+
+  <div class="card avoid-break" style="margin-bottom:24px;">
+    <div class="card-label">Data Sources Used</div>
+    <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+      {% set sources = [
+        ('Company Website Scrape',  'Homepage and /about page content analysis'),
+        ('Clearbit Autocomplete',   'Company name, domain, and logo data'),
+        ('DuckDuckGo Instant Answer','Public company description and summary'),
+        ('News Sources',            'Recent press mentions via NewsAPI / Google News RSS'),
+        ('Tech Stack Detection',    'HTML fingerprinting of publicly visible technologies'),
+        ('AI Analysis',             'Anthropic Claude — report content generation and synthesis'),
+      ] %}
+      {% for source, desc in sources %}
+      <tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:7px 0; font-size:9.5pt; font-weight:600; color:#1a2744; width:35%;">{{ source }}</td>
+        <td style="padding:7px 0; font-size:9.5pt; color:#475569;">{{ desc }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="background:#1a2744; border-radius:10px; padding:22px 28px;
+              display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="color:#f59e0b; font-size:9pt; font-weight:700; letter-spacing:1px;
+                  text-transform:uppercase; margin-bottom:4px;">Lead Automation System</div>
+      <div style="color:#94a3b8; font-size:9pt;">Automated · AI-Powered · Personalised</div>
+    </div>
+    <div style="text-align:right; color:#64748b; font-size:9pt; line-height:1.7;">
+      Generated: {{ generated_at }}<br>
+      Prepared for: {{ lead.full_name }}<br>
+      {{ lead.company_name }}
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

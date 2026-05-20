@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, BackgroundTasks
 
-from models.lead import LeadResponse, LeadSubmission, WorkflowStatus
+from models.lead import LeadResponse, LeadSubmission
 from services.enrichment import EnrichmentService
 from services.report_generator import ReportGenerator
 from services.email_sender import EmailSender
@@ -147,7 +146,7 @@ async def _run_pipeline(lead_dict: dict, row_index: int | None) -> None:
         errors.append("Email skipped: no PDF available")
 
     # ── Final status ───────────────────────────────────────────────────
-    final_status = "complete" if not errors else f"complete_with_warnings"
+    final_status = "complete" if not errors else "complete_with_warnings"
     _sheets.update_status(
         row_index,
         status=final_status,
